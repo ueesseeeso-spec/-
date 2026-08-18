@@ -1,0 +1,49 @@
+name: Ozon card copy audit
+
+on:
+  push:
+    branches:
+      - agent/ozon-copy-audit
+    paths:
+      - '.github/workflows/ozon-copy-audit.yml'
+      - 'tools/ozon-copy-audit/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: tools/ozon-copy-audit
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: tools/ozon-copy-audit/package.json
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Audit public Ozon cards
+        run: npm run audit
+
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ozon-copy-audit-report
+          path: tools/ozon-copy-audit/output
+          if-no-files-found: warn
+          retention-days: 7
