@@ -21,7 +21,7 @@ permissions:
 jobs:
   audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: tools/ozon-copy-audit
@@ -39,11 +39,8 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
-
-      - name: Audit public Ozon cards
-        run: npm run audit
+      - name: Probe Ozon mobile public API
+        run: node mobile-probe.mjs
 
       - name: Upload audit report
         if: always()
